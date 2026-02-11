@@ -750,34 +750,27 @@ procedure write_args(arg:arg_ptr;num_args:word);
 var
   i:word;
 begin
-  writeln('(');
+  write(' (');
   inc(indentation);
   for i:=1 to num_args do
   begin
     with arg^ do
     begin
-      indent;
-      if referenced in flags then
-        write('var   ')
-      else if const_arg in flags then
-        write('const ')
+      if referenced in flags then write('VAR ')
+      else if const_arg in flags then write('CONST ')
       else
-        write('      ');
+        write(' ');
       if flags - [referenced,const_arg] <> [local] then
       begin
         WriteError('{ flags ='+hexbyte(byte(flags))+' }');
-        indent;
       end;
-      write('arg',i,':',oneindent);
+      write('arg',i,' : ');
       write_var_type(type_unit,type_def_ofs);
       if i<>num_args then
-        writeln(';')
-      else
-        writeln;
+        write(';')
     end;
     arg := add_only_offset(arg,sizeof(arg_rec));
   end;
-  indent;
   write(')');
   dec(indentation);
 end;
@@ -818,15 +811,15 @@ begin
       write('destructor',oneindent,name)
     else
       if proc then
-        write('procedure',oneindent,name)
+        write('procedure ',name)
       else
-        write('function',oneindent,name);
+        write('function ',name);
     if info^.num_args > 0 then
       write_args(arg_ptr(add_only_offset(info,sizeof(func_type_rec))),
                  info^.num_args);
     if not proc then
     begin
-      write(':',oneindent);
+      write(' : ');
       write_var_type(type_unit,type_def_ofs);
     end;
   end;
@@ -856,12 +849,9 @@ begin
       write(';');
     end;
 
-    if external_code in code_type then
-      write(' external;');
-    if assembler in code_type then
-      write(' assembler;');
-    if interrupt in code_type then
-      write(' interrupt;');
+    if external_code in code_type then write(' external;');
+    if assembler in code_type then write(' assembler;');
+    if interrupt in code_type then write(' interrupt;');
 
     if exported in obj_type then
       write(' export;');
@@ -1213,7 +1203,7 @@ begin
   indent;
   if self then
   begin
-    write('Unit',oneindent,name,';');
+    write('UNIT',oneindent,name,';');
     last_kind := init_id;
   end
   else
@@ -1225,7 +1215,7 @@ begin
     end
     else
     begin
-      write('Uses',oneindent,name);
+      write('USES',oneindent,name);
       last_kind := unit_id;
     end;
   end;
@@ -1235,7 +1225,7 @@ begin
     if self then
     begin
       writeln;
-      writeln('interface');
+      writeln('INTERFACE');
     end;
   end;
 end;

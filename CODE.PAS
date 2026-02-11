@@ -6,7 +6,17 @@ procedure print_dump(seg:byte);
 
 implementation
 
-uses globals,head,blocks,reloc,dump,util,loader;
+uses globals,head,blocks,reloc,dump,util,loader,dis;
+
+procedure disasm_code(code:pchar; codelimit:word);
+var codeofs : word;
+begin
+  codeofs := 0;
+  while codeofs < codelimit do
+  begin
+          inc(codeofs, WriteDisAsm86(code, codeofs));
+  end;
+end;
 
 procedure print_dump(seg:byte);
 var
@@ -17,8 +27,7 @@ var
 begin
   case seg of
   code_seg : begin
-        if header^.code_size = 0 then
-          exit;
+        if header^.code_size = 0 then exit;
         writeln;
         writeln('Emitted code');
         codebase :=header^.ofs_code_blocks;
@@ -26,8 +35,7 @@ begin
      end;
 
   const_seg : begin
-        if header^.const_size = 0 then
-          exit;
+        if header^.const_size = 0 then exit;
         writeln;
         writeln('Emitted consts');
         codebase :=header^.ofs_const_blocks;
@@ -48,6 +56,7 @@ begin
     ofs := 0;
     limit := code_block^.size;
     dumpbytes(add_only_offset(code_buf,base)^,0,limit);
+    if seg = code_seg then disasm_code(@add_only_offset(code_buf,base)^, limit);
     inc(base,limit);
     inc(codeofs,sizeof(block_rec));
   end;

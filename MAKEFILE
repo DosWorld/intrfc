@@ -1,0 +1,12 @@
+all: INTRFC.EXE
+
+INTRFC.EXE:
+	tpc /m INTRFC.PAS
+
+clean:
+	del *.bak
+	del *.tpu
+	del *.exe
+
+
+
