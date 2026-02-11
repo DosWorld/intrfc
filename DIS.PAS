@@ -1,5 +1,7 @@
-{$X+}
 UNIT DIS;
+{$I SWITCHES.INC}
+{$X+,R-,Q-}
+
 INTERFACE
 
 function dis86(code: PChar; ofs: Word; var outStr: string): Word;
@@ -136,6 +138,11 @@ begin
     $30..$33: begin Mn:=Grp1[6]; GetModRM(Op and 1 <> 0, S, D); if Op<$32 then begin T:=D; D:=S; S:=T; end; end;
     $38..$3B: begin Mn:=Grp1[7]; GetModRM(Op and 1 <> 0, S, D); if Op<$3A then begin T:=D; D:=S; S:=T; end; end;
 
+    $04,$0C,$14,$1C,$24,$2C,$34,$3C:
+      begin Mn:=Grp1[Op shr 3]; D:='AL'; S:=ByteHex(GetB)+'h'; end;
+    $05,$0D,$15,$1D,$25,$2D,$35,$3D:
+      begin Mn:=Grp1[Op shr 3]; D:='AX'; S:=WordHex(GetW)+'h'; end;
+
     $06: begin Mn:='PUSH'; D:='ES'; end;
     $07: begin Mn:='POP'; D:='ES'; end;
     $0E: begin Mn:='PUSH'; D:='CS'; end;
@@ -227,6 +234,10 @@ begin
     $C7: begin Mn:='MOV'; GetModRM(True, T, D); S:='word '+WordHex(GetW)+'h'; end;
     $C8: begin Mn:='ENTER'; D:=WordHex(GetW)+'h'; S:=ByteHex(GetB)+'h'; end;
     $C9: Mn:='LEAVE';
+
+    $CA: begin Mn:='RETF'; S:=WordHex(GetW)+'h'; end;
+    $CB: Mn:='RETF';
+
     $CD: begin Mn:='INT'; D:=ByteHex(GetB)+'h'; end;
     $CE: Mn:='INTO'; $CF: Mn:='IRET';
 
@@ -245,6 +256,13 @@ begin
     $D4: begin Mn:='AAM'; GetB; end;
     $D5: begin Mn:='AAD'; GetB; end;
     $D6: Mn:='SALC'; $D7: Mn:='XLAT';
+
+    $D8..$DF:
+      begin
+         Mn:='ESC'; D:=ByteHex(Op - $D8);
+         GetModRM(True, T, S);
+         S := T + ' (' + S + ')';
+      end;
 
     $E0: begin Mn:='LOOPNE'; TmpI:=SgnExt(GetB); D:=WordHex(IP+TmpI); end;
     $E1: begin Mn:='LOOPE';  TmpI:=SgnExt(GetB); D:=WordHex(IP+TmpI); end;
